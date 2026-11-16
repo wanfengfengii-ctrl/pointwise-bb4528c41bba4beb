@@ -1,0 +1,54 @@
+<taxonomy xmlns="urn:local-xbrl:1" xmlns:m="urn:lab">
+  <concept name="m:Revenue" kind="metric"/>
+  <concept name="m:Expense" kind="metric"/>
+  <concept name="m:Combined" kind="metric"/>
+  <concept name="m:Alternative" kind="metric"/>
+  <concept name="m:OpenMetric" kind="metric"/>
+  <concept name="m:ScenarioMetric" kind="metric"/>
+  <concept name="m:Bare" kind="metric"/>
+  <concept name="m:WideCube" kind="cube"/>
+  <concept name="m:NarrowCube" kind="cube"/>
+  <concept name="m:BanCube" kind="cube"/>
+  <concept name="m:ScenarioCube" kind="cube"/>
+  <concept name="m:Region" kind="dimension"/>
+  <concept name="m:Channel" kind="dimension"/>
+  <concept name="m:Extra" kind="dimension"/>
+  <concept name="m:RegionRoot" kind="member"/>
+  <concept name="m:Hidden" kind="member"/>
+  <concept name="m:North" kind="member"/>
+  <concept name="m:South" kind="member"/>
+  <concept name="m:Forbidden" kind="member"/>
+  <concept name="m:Shared" kind="member"/>
+  <concept name="m:Retail" kind="member"/>
+  <concept name="m:Wholesale" kind="member"/>
+  <concept name="m:ExtraMember" kind="member"/>
+  <arc kind="all" role="report" from="m:Revenue" to="m:WideCube" targetRole="wide" closed="true"/>
+  <arc kind="notAll" role="report" from="m:Revenue" to="m:BanCube" targetRole="ban"/>
+  <arc kind="all" role="report" from="m:Expense" to="m:NarrowCube" targetRole="narrow" closed="true"/>
+  <arc kind="all" role="report" from="m:Combined" to="m:WideCube" targetRole="wide" closed="true"/>
+  <arc kind="all" role="report" from="m:Combined" to="m:NarrowCube" targetRole="narrow" closed="true"/>
+  <arc kind="all" role="option-wide" from="m:Alternative" to="m:WideCube" targetRole="wide" closed="true"/>
+  <arc kind="all" role="option-narrow" from="m:Alternative" to="m:NarrowCube" targetRole="narrow" closed="true"/>
+  <arc kind="all" role="report" from="m:OpenMetric" to="m:WideCube" targetRole="wide"/>
+  <arc kind="all" role="report" from="m:ScenarioMetric" to="m:ScenarioCube" targetRole="scenario-cube" contextElement="scenario" closed="true"/>
+  <arc kind="hypercube-dimension" role="wide" from="m:WideCube" to="m:Region" targetRole="region"/>
+  <arc kind="hypercube-dimension" role="wide" from="m:WideCube" to="m:Channel" targetRole="channels"/>
+  <arc kind="dimension-domain" role="region" from="m:Region" to="m:RegionRoot" usable="false"/>
+  <arc kind="domain-member" role="region" from="m:RegionRoot" to="m:Hidden" usable="false"/>
+  <arc kind="domain-member" role="region" from="m:Hidden" to="m:South" targetRole="south-path"/>
+  <arc kind="domain-member" role="region" from="m:RegionRoot" to="m:North" targetRole="north-path"/>
+  <arc kind="domain-member" role="north-path" from="m:North" to="m:Shared"/>
+  <arc kind="domain-member" role="north-path" from="m:Shared" to="m:RegionRoot" targetRole="region" usable="false"/>
+  <arc kind="domain-member" role="south-path" from="m:South" to="m:North"/>
+  <arc kind="domain-member" role="south-path" from="m:North" to="m:Forbidden"/>
+  <arc kind="dimension-domain" role="channels" from="m:Channel" to="m:Retail"/>
+  <arc kind="domain-member" role="channels" from="m:Retail" to="m:Wholesale"/>
+  <arc kind="dimension-default" role="defaults" from="m:Channel" to="m:Retail"/>
+  <arc kind="hypercube-dimension" role="narrow" from="m:NarrowCube" to="m:Region" targetRole="narrow-members"/>
+  <arc kind="dimension-domain" role="narrow-members" from="m:Region" to="m:RegionRoot" usable="false"/>
+  <arc kind="domain-member" role="narrow-members" from="m:RegionRoot" to="m:South"/>
+  <arc kind="hypercube-dimension" role="ban" from="m:BanCube" to="m:Region" targetRole="ban-members"/>
+  <arc kind="dimension-domain" role="ban-members" from="m:Region" to="m:Forbidden"/>
+  <arc kind="hypercube-dimension" role="scenario-cube" from="m:ScenarioCube" to="m:Region" targetRole="scenario-members"/>
+  <arc kind="dimension-domain" role="scenario-members" from="m:Region" to="m:North"/>
+</taxonomy>

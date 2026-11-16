@@ -1,0 +1,7 @@
+<taxonomy xmlns="urn:local-xbrl:1" xmlns:m="urn:calculation">
+  <concept name="m:X" kind="metric"/>
+  <concept name="m:P" kind="metric"/>
+  <concept name="m:Q" kind="metric"/>
+  <arc kind="summation-item" role="p" from="m:P" to="m:X" weight="1"/>
+  <arc kind="summation-item" role="q" from="m:Q" to="m:X" weight="1"/>
+</taxonomy>

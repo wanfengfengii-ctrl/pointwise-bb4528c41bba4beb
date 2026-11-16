@@ -1,0 +1,6 @@
+<i:xbrl xmlns:i="http://www.xbrl.org/2003/instance" xmlns:m="urn:calculation" xmlns:u="urn:calculation:unit">
+  <i:context id="c-first"><i:entity><i:identifier scheme="urn:calculation:entity">E</i:identifier></i:entity><i:period><i:instant>2026-10-31</i:instant></i:period></i:context>
+  <i:unit id="u-first"><i:measure>u:count</i:measure></i:unit>
+  <m:X id="x" contextRef="c-first" unitRef="u-first" decimals="0">0.5</m:X>
+  <m:P id="p" contextRef="c-first" unitRef="u-first" decimals="INF">0</m:P>
+</i:xbrl>
