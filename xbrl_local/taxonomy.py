@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 import hashlib
 from types import MappingProxyType
+from .calculation import parse_decimal
 from .errors import InputError
 from .xmlio import T, tag, parse, qname, required, boolean, read_xml
 
@@ -17,6 +18,14 @@ class Arc:
     usable: bool
     closed: bool
     part: str
+
+
+@dataclass(frozen=True)
+class CalculationEdge:
+    role: str
+    source: str
+    target: str
+    weight: object
 
 
 @dataclass(frozen=True)
@@ -64,14 +73,28 @@ class Taxonomy:
                  'hypercube-dimension': ('cube', 'dimension'),
                  'dimension-domain': ('dimension', 'member'),
                  'domain-member': ('member', 'member'),
-                 'dimension-default': ('dimension', 'member')}
+                 'dimension-default': ('dimension', 'member'),
+                 'summation-item': ('metric', 'metric')}
         seen = set()
+        calculations, calculation_keys = [], set()
         for element in root.findall(tag(T, 'arc')):
             kind, role = required(element, 'kind'), required(element, 'role')
             source = qname(required(element, 'from'), element, scopes)
             target = qname(required(element, 'to'), element, scopes)
             if kind not in types or (kinds.get(source), kinds.get(target)) != types[kind]:
                 raise InputError('invalid relationship endpoints')
+            if kind == 'summation-item':
+                if set(element.attrib) - {'kind', 'role', 'from', 'to', 'weight'}:
+                    raise InputError('unsupported relationship attribute')
+                weight = parse_decimal(required(element, 'weight'))
+                if not weight:
+                    raise InputError('zero calculation weight')
+                key = (role, source, target)
+                if key in calculation_keys:
+                    raise InputError('duplicate relationship')
+                calculation_keys.add(key)
+                calculations.append(CalculationEdge(role, source, target, weight))
+                continue
             next_role = element.get('targetRole', role).strip()
             part = element.get('contextElement', 'segment')
             if not next_role or part not in ('segment', 'scenario'):
@@ -118,6 +141,17 @@ class Taxonomy:
                         tuple((d, frozenset(m)) for d, m in sorted(dimensions.items()))))
             rules[metric] = tuple(RoleConditions(r, tuple(c)) for r, c in sorted(groups.items()))
         obj._rules = rules
+        involved = {edge.source for edge in calculations} | {edge.target for edge in calculations}
+        if len(involved) > 8:
+            raise InputError('too many calculation metrics')
+        grouped = defaultdict(list)
+        for edge in calculations:
+            grouped[edge.role, edge.source].append((edge.target, edge.weight))
+        if len(grouped) > 8:
+            raise InputError('too many calculation groups')
+        obj.calculations = tuple(calculations)
+        obj.calculation_metrics = frozenset(involved)
+        obj.calculation_groups = tuple((key, tuple(grouped[key])) for key in sorted(grouped))
         return obj
 
     def _edges(self, kind, role, source):

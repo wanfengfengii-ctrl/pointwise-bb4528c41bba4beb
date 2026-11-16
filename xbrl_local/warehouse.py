@@ -3,7 +3,8 @@ from dataclasses import dataclass
 import hashlib
 import json
 import sqlite3
-from .errors import InputError, ConflictError, QualificationError, Issue
+from .calculation import inconsistent_groups
+from .errors import InputError, ConflictError, QualificationError, Issue, CalculationError
 
 
 def _json(value):
@@ -93,6 +94,12 @@ class Warehouse:
                     else:
                         db.execute('INSERT INTO facts VALUES (?, ?, ?)', (dataset, row['id'], payload))
                         inserted += 1
+                if taxonomy.calculations:
+                    stored = [json.loads(record[0]) for record in db.execute(
+                        'SELECT payload FROM facts WHERE dataset=?', (dataset,))]
+                    groups = inconsistent_groups(taxonomy, stored)
+                    if groups:
+                        raise CalculationError(groups)
                 db.execute('INSERT INTO batches VALUES (?, ?, ?, ?)', (dataset, batch_id, fingerprint, inserted))
                 result = Receipt(dataset, batch_id, inserted)
             db.execute('COMMIT')

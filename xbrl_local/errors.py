@@ -1,5 +1,6 @@
 """Public input, qualification and identity errors."""
 from dataclasses import dataclass
+import json
 
 
 class InputError(ValueError):
@@ -22,3 +23,10 @@ class QualificationError(InputError):
         self.issues = tuple(issues)
         super().__init__('DIMENSION_QUALIFICATION: ' + ', '.join(
             f'{i.fact_id} ({i.metric}, {i.context_id})' for i in self.issues))
+
+
+class CalculationError(InputError):
+    def __init__(self, groups):
+        self.groups = groups
+        super().__init__('CALCULATION_INCONSISTENT: ' + json.dumps(
+            groups, ensure_ascii=False, sort_keys=True, separators=(',', ':')))
